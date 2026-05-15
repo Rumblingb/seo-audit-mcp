@@ -2,6 +2,10 @@
 SEO Audit MCP Server
 Provides AI agents with the ability to audit any URL's on-page SEO.
 
+Usage:
+  python3 server.py                    # Free tier (50 calls/instance)
+  python3 server.py --pro-key PROL_XXX  # Pro tier (unlimited)
+
 Tools:
 - seo_analyze_url: Full on-page SEO audit
 - seo_check_headers: HTTP headers audit
@@ -26,6 +30,44 @@ from mcp.server import NotificationOptions, Server
 from pydantic import AnyUrl
 
 server = Server("seo-audit-mcp")
+
+# ─── Rate Limiting & Pro Key ───────────────────────────────────────────
+FREE_LIMIT = 50
+PRO_KEYS = {"PROL_AGENTPAY_DEMO": "demo"}  # Demo key for testing
+
+# Parse --pro-key from command line
+PRO_KEY = None
+for i, arg in enumerate(sys.argv):
+    if arg == "--pro-key" and i + 1 < len(sys.argv):
+        PRO_KEY = sys.argv[i + 1]
+        break
+
+IS_PRO = PRO_KEY in PRO_KEYS
+call_counter = 0
+
+STRIPE_LINK = "https://buy.stripe.com/dRm6oJ4Hd2Jugek0wz1oI0m"  # $19/mo
+
+def check_rate_limit():
+    """Check if free tier has exceeded limit. Returns error dict or None."""
+    global call_counter
+    if IS_PRO:
+        return None
+    call_counter += 1
+    if call_counter > FREE_LIMIT:
+        remaining = call_counter - FREE_LIMIT
+        return {
+            "error": f"Free tier limit reached ({FREE_LIMIT} calls). Upgrade to Pro for unlimited access.",
+            "isError": True,
+            "next_steps": [
+                f"Purchase Pro at {STRIPE_LINK} ($19/mo, unlimited)",
+                "Restart the server to reset the free counter",
+                "Use --pro-key PROL_XXX to run in Pro mode"
+            ],
+            "calls_used": call_counter,
+            "limit": FREE_LIMIT,
+            "over_by": remaining
+        }
+    return None
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
@@ -385,6 +427,12 @@ async def handle_call_tool(
 ) -> list[types.TextContent]:
     if arguments is None:
         arguments = {}
+
+    # Rate limit check
+    limit_check = check_rate_limit()
+    if limit_check:
+        return [types.TextContent(type="text", text=json.dumps(limit_check, indent=2))]
+
     url = arguments.get("url", "")
 
     if name == "seo_analyze_url":
