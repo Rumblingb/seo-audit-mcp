@@ -1,0 +1,39 @@
+{
+  "title": "SEO Audit input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "urls": {
+      "title": "URLs",
+      "type": "array",
+      "description": "Pages to audit. A bare domain is accepted and https:// is assumed. Wire this to the output of a crawler Actor to audit a whole site.",
+      "editor": "stringList",
+      "prefill": ["https://apify.com", "example.com", "https://github.com"]
+    },
+    "timeoutMs": {
+      "title": "Request timeout (ms)",
+      "type": "integer",
+      "description": "Per-URL fetch timeout. Slow pages beyond this are recorded as failed rather than stalling the run.",
+      "default": 15000,
+      "minimum": 1000,
+      "maximum": 120000,
+      "unit": "ms"
+    },
+    "maxConcurrency": {
+      "title": "Max concurrency",
+      "type": "integer",
+      "description": "How many pages to fetch in parallel. Lower this when auditing many pages on one host so you do not trip rate limits.",
+      "default": 5,
+      "minimum": 1,
+      "maximum": 25
+    },
+    "userAgent": {
+      "title": "User agent",
+      "type": "string",
+      "description": "Sent with every request. Some sites serve different markup to unknown agents.",
+      "editor": "textfield",
+      "default": "Mozilla/5.0 (compatible; SeoAuditActor/0.1; +https://apify.com)"
+    }
+  },
+  "required": ["urls"]
+}

@@ -1,0 +1,48 @@
+{
+  "actorSpecification": 1,
+  "name": "seo-audit",
+  "title": "SEO Audit — bulk on-page checks with a scored report",
+  "description": "Audit any list of URLs for on-page SEO: title and meta description length, H1 structure, canonical, viewport, lang, Open Graph, noindex, image alt text, internal/external links, word count and response time. Returns a 0-100 score with the exact issues behind it. No API keys required.",
+  "version": "0.1",
+  "meta": {
+    "templateId": "js-empty"
+  },
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "title": "SEO audit results",
+      "views": {
+        "overview": {
+          "title": "Overview",
+          "transformation": {
+            "fields": [
+              "url", "score", "issueCount", "statusCode", "title",
+              "titleLength", "metaDescriptionLength", "h1Count", "wordCount"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "url": { "label": "URL", "format": "link" },
+              "score": { "label": "Score", "format": "number" },
+              "issueCount": { "label": "Issues", "format": "number" },
+              "statusCode": { "label": "HTTP", "format": "number" },
+              "title": { "label": "Title", "format": "text" },
+              "titleLength": { "label": "Title len", "format": "number" },
+              "metaDescriptionLength": { "label": "Meta len", "format": "number" },
+              "h1Count": { "label": "H1s", "format": "number" },
+              "wordCount": { "label": "Words", "format": "number" }
+            }
+          }
+        },
+        "issues": {
+          "title": "Issues found",
+          "transformation": { "fields": ["url", "score", "issues"] },
+          "display": { "component": "table" }
+        }
+      }
+    }
+  }
+}
